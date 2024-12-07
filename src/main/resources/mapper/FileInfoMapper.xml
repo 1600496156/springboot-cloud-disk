@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mhc.springbootclouddisk.mapper.FileInfoMapper" >
+    <select id="getFolderInfo" resultType="com.mhc.springbootclouddisk.entity.domain.FileInfo">
+        SELECT file_id, user_id, file_md5, file_pid, file_size, file_name, file_cover, file_path, create_time, update_time, folder_type, file_category, file_type, status, recovery_time, del_flat
+        from file_info
+        ${ew.customSqlSegment}
+        order by
+        <foreach collection="pathList" open="field(file_id," item="path" separator="," close=")">
+            #{path}
+        </foreach>
+    </select>
+</mapper>
