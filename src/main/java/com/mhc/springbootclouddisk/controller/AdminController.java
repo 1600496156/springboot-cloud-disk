@@ -106,13 +106,6 @@ public class AdminController {
         log.info("管理员获取下载链接成功，开始下载");
     }
 
-    @PostMapping("delFile")
-    public CloudDiskResult delFile(@RequestParam("fileIdAndUserIds") String fileIdAndUserIds) {
-        adminService.delFile(fileIdAndUserIds);
-        log.info("管理员执行删除文件接成功：{}", fileIdAndUserIds);
-        return CloudDiskResult.success();
-    }
-
     @GetMapping("ts/getVideoInfo/{userId}/{fileId}")
     public void tsGetVideoInfo(@PathVariable(value = "userId") String userId, @PathVariable(value = "fileId") String fileId, HttpServletResponse response) {
         fileInfoService.tsGetVideoInfo(userId, fileId, response, null, null);
@@ -121,5 +114,12 @@ public class AdminController {
     @PostMapping("getFile/{userId}/{fileId}")
     public void getFile(@PathVariable(value = "userId") String userId, @PathVariable(value = "fileId") String fileId, HttpServletResponse response) {
         fileInfoService.tsGetVideoInfo(userId, fileId, response, null, null);
+    }
+
+    @PostMapping("delFile")
+    public CloudDiskResult delFile(@RequestParam("fileIdAndUserIds") String fileIdAndUserIds) {
+        adminService.delFile(fileIdAndUserIds);
+        log.info("管理员执行删除文件接成功：{}", fileIdAndUserIds);
+        return CloudDiskResult.success();
     }
 }

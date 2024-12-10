@@ -11,6 +11,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public CloudDiskResult runtimeExceptionHandler(RuntimeException e) {
         log.error("全局异常管理器 - 参数校验捕获异常：{}",e.getMessage());
+        e.printStackTrace();
         return new CloudDiskResult("error",500,e.getMessage(),null);
     }
 }

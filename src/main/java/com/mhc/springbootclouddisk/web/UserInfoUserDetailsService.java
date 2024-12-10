@@ -23,7 +23,7 @@ public class UserInfoUserDetailsService implements UserDetailsService {
         UserInfo userInfo = userInfoMapper.selectOne(user);
         log.info("UserInfoUserDetailsService根据用户名：{}，查询到用户:{}", username,userInfo);
         if (userInfo == null) {
-            throw new ServerException("登录失败，你的账号可能被封禁");
+            throw new ServerException("登录失败，你的账号不存在或者账号被封禁");
         }
         //TODO查询权限
         return userInfo;
