@@ -11,7 +11,7 @@
 
     <groupId>com.mhc</groupId>
     <artifactId>springboot-cloud-disk</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <properties>
         <java.version>21</java.version>
@@ -113,12 +113,6 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <version>0.12.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.17.2</version>
         </dependency>
 
     </dependencies>

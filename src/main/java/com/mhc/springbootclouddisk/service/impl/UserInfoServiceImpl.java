@@ -92,7 +92,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
         } catch (ArithmeticException e) {
             log.error(e.getMessage());
-            throw new ServerException("登录失败，你的账号可能被封禁");
+            throw new ServerException("authenticationManager - 登录失败，你的账号不存在或者账号被封禁");
         }
         UserInfo user = (UserInfo) authentication.getPrincipal();
         if (user == null) {
@@ -128,7 +128,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         UserInfo user = lambdaQuery().eq(UserInfo::getUserId, userId).one();
         if (user == null) {
             log.info("avatar获取不到用户");
-            return "https://springboot-cloud-disk.oss-cn-shenzhen.aliyuncs.com/Avatar/074fab204f789e5a13bd0828c63cd8b1.jpg";
+            return "https://springboot-cloud-disk.oss-cn-shenzhen.aliyuncs.com/Avatar/default.jpg";
         }
         if (user.getQqAvatar() == null) {
             String url = aliOSSUtils.defaultUpload(userId);

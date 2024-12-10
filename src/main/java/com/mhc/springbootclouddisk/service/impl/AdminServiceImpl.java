@@ -1,11 +1,14 @@
 package com.mhc.springbootclouddisk.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mhc.springbootclouddisk.common.constants.Constants;
+import com.mhc.springbootclouddisk.common.exception.ServerException;
 import com.mhc.springbootclouddisk.entity.domain.FileInfo;
 import com.mhc.springbootclouddisk.entity.domain.UserInfo;
 import com.mhc.springbootclouddisk.entity.dto.LoadFileDataListDto;
@@ -59,8 +62,10 @@ public class AdminServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> impl
         }
         // 执行分页查询
         List<FileInfo> fileList = query.list(fileInfoPage);
+        if (CollUtil.isEmpty(fileList)) throw new ServerException("系统中没有任何文件");
         // 根据userId批量查询用户信息
         List<UserInfo> userList = userInfoMapper.selectByIds(fileList.stream().map(FileInfo::getUserId).collect(Collectors.toList()));
+        log.info("查询到拥有文件的用户：{}", userList);
         // 组装返回对象
         return getLoadUserDataListVo(fileInfoPage, userList, fileList);
     }
