@@ -3,6 +3,7 @@ package com.mhc.springbootclouddisk.utils;
 import com.mhc.springbootclouddisk.common.exception.ServerException;
 import com.mhc.springbootclouddisk.entity.domain.UserInfo;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,20 +20,26 @@ import java.util.Objects;
 @Slf4j
 public class JwtUtils {
 
-    private final SecretKey key=Jwts.SIG.HS256.key().build();
+    private final SecretKey key = Jwts.SIG.HS256.key().build();
 
     public String createToken(Map<String, Object> claims) {
-        String token = Jwts.builder().claims(claims).signWith(key).issuedAt(new Date()).expiration(new Date(new Date().getTime() + 1000 * 60 * 60)).compact();
+        String token = Jwts.builder().claims(claims).signWith(key).issuedAt(new Date()).expiration(new Date(new Date().getTime() + 1000 * 60 * 60 * 2)).compact();
         log.info("创建Token成功：{}", token);
         return token;
     }
 
     public Claims parseToken(String token) {
-        if (key==null){
+        if (key == null) {
             log.info("Token失效，请重新登录");
             throw new ServerException("Token失效，请重新登录");
         }
-        Claims payload = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        Claims payload;
+        try {
+            payload = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        } catch (ExpiredJwtException e) {
+            log.info("用户JWT令牌已经过期，需要重新登录");
+            throw new ServerException("你的JWT令牌已经过期，请手动点击右上角头像进行重新登录");
+        }
         log.info("解析Token：{} 成功!\n解析出信息：{}", token, payload);
         return payload;
     }

@@ -6,6 +6,7 @@ import com.mhc.springbootclouddisk.entity.domain.UserInfo;
 import com.mhc.springbootclouddisk.entity.dto.UserLoginDto;
 import com.mhc.springbootclouddisk.entity.dto.UserSpaceDto;
 import jakarta.servlet.http.HttpServletResponse;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserInfoService extends IService<UserInfo> {
@@ -22,4 +23,6 @@ public interface UserInfoService extends IService<UserInfo> {
     UserSpaceDto getUseSpace(String jwt);
 
     Page<UserInfo> loadUserListPage(Long pageNo, Long pageSize);
+
+    void updatePassword(@Length(min = 8, max = 18) String password, String jwt);
 }

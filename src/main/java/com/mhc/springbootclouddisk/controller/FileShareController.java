@@ -1,5 +1,6 @@
 package com.mhc.springbootclouddisk.controller;
 
+import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhc.springbootclouddisk.common.constants.Constants;
 import com.mhc.springbootclouddisk.common.response.CloudDiskResult;
@@ -9,7 +10,6 @@ import com.mhc.springbootclouddisk.entity.vo.LoadShareListVo;
 import com.mhc.springbootclouddisk.service.FileShareService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,7 +30,7 @@ public class FileShareController {
     @PostMapping("shareFile")
     public CloudDiskResult shareFile(@RequestParam("fileId")String fileId,@RequestParam("validType")Short validType,@RequestParam(value = "code",required = false)String code,@CookieValue(name = "Authorization", required = false) String token){
         if (code==null){
-            code = RandomStringUtils.random(Constants.LENGTH_5, true, true).toUpperCase();
+            code = RandomUtil.randomStringUpper(Constants.LENGTH_5);
         }
         LoadShareListListVo loadShareListListVo = fileShareService.shareFile(fileId,validType,code,token);
         return CloudDiskResult.success(loadShareListListVo);

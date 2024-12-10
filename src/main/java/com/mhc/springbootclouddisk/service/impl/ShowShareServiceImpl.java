@@ -1,5 +1,6 @@
 package com.mhc.springbootclouddisk.service.impl;
 
+import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -23,7 +24,6 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -226,7 +226,7 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
                 log.error("同级目录已存在名为 {} 的文件或文件夹，保存失败", fileInfo.getFileName());
                 throw new ServerException("同级目录已存在名为 " + fileInfo.getFileName() + " 的文件或文件夹，保存失败");
             }
-            String newFileId = RandomStringUtils.random(Constants.LENGTH_10, true, true);
+            String newFileId = RandomUtil.randomString(Constants.LENGTH_10);
             fileIdMap.put(fileId, newFileId);
             fileInfo.setFileId(newFileId);
             fileInfo.setUserId(newUserId);

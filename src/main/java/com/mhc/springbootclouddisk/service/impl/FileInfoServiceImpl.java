@@ -1,5 +1,6 @@
 package com.mhc.springbootclouddisk.service.impl;
 
+import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -26,7 +27,6 @@ import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -121,7 +121,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     public UploadFileVo uploadFile(String token, UploadFileDto uploadFileDto, HttpServletResponse response) {
         String fileId = uploadFileDto.getFileId();
         if (fileId == null || fileId.isEmpty()) {
-            fileId = RandomStringUtils.random(Constants.LENGTH_10, true, true);
+            fileId = RandomUtil.randomString(Constants.LENGTH_10);
         }
         Claims claims = jwtUtils.getClaims(token);
 
@@ -323,7 +323,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             log.info("创建文件夹失败，当前目录文件夹名字重复");
             throw new ServerException("创建文件夹失败，当前目录文件夹名字重复");
         }
-        String randomFileId = RandomStringUtils.random(Constants.LENGTH_10, true, true);
+        String randomFileId = RandomUtil.randomString(Constants.LENGTH_10);
         FileInfo fileInfo = new FileInfo();
         fileInfo.setUserId(userId);
         fileInfo.setFileId(randomFileId);
@@ -365,10 +365,17 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         Claims claims = jwtUtils.getClaims(token);
         String userId = claims.get("userId", String.class);
         FileInfo fileInfo = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileId, fileId).one();
-        String fileSuffixName = fileInfo.getFileName().substring(fileInfo.getFileName().lastIndexOf("."));
-        String newFileName = fileName + fileSuffixName;
         String filePid = fileInfo.getFilePid();
-        Long fileNumber = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileName, newFileName).eq(FileInfo::getFilePid, filePid).count();
+        Long fileNumber;
+        String newFileName;
+        if (fileInfo.getFolderType() == (short) 0) {
+            String fileSuffixName = fileInfo.getFileName().substring(fileInfo.getFileName().lastIndexOf("."));
+            newFileName = fileName + fileSuffixName;
+            fileNumber = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileName, newFileName).eq(FileInfo::getFilePid, filePid).eq(FileInfo::getFolderType, (short) 0).count();
+        } else {
+            fileNumber = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileName, fileName).eq(FileInfo::getFilePid, filePid).eq(FileInfo::getFolderType, (short) 1).count();
+            newFileName = fileName;
+        }
         if (fileNumber > 0) {
             log.info("文件重命名失败，当前目录文件名字重复");
             throw new ServerException("文件重命名失败，当前目录文件名字重复");
@@ -451,7 +458,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             log.info("查找不到文件，无法创建下载链接");
             throw new ServerException("查找不到文件，无法创建下载链接");
         }
-        String randomCode = RandomStringUtils.random(Constants.LENGTH_30, true, true);
+        String randomCode = RandomUtil.randomString(Constants.LENGTH_30);
         CreateDownloadUrlDto createDownloadUrlDto = new CreateDownloadUrlDto();
         createDownloadUrlDto.setCode(randomCode);
         createDownloadUrlDto.setFilePath(fileInfo.getFilePath());
@@ -519,7 +526,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         if (count > 0) {
             String filePrefixName = fileName.substring(0, fileName.lastIndexOf("."));
             String filesSuffixName = fileName.substring(fileName.lastIndexOf("."));
-            fileName = filePrefixName + "_" + RandomStringUtils.random(Constants.LENGTH_5, false, true) + filesSuffixName;
+            fileName = filePrefixName + "_" + RandomUtil.randomNumbers(Constants.LENGTH_5) + filesSuffixName;
             log.info("文件名冲突，已为文件更名成：{}", fileName);
             return fileName;
         }
