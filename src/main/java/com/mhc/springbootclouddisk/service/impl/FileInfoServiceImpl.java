@@ -186,7 +186,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             }
             Object redisChunkSizes = redisTemplate.opsForValue().get(Constants.REDIS_CHUNK_SIZES + fileId);
             if (redisChunkSizes == null) {
-                redisTemplate.opsForValue().set(Constants.REDIS_CHUNK_SIZES + fileId, chunksSize);
+                redisTemplate.opsForValue().set(Constants.REDIS_CHUNK_SIZES + fileId, chunksSize, Duration.ofMinutes(1));
             } else {
                 redisTemplate.opsForValue().set(Constants.REDIS_CHUNK_SIZES + fileId, Long.parseLong(Objects.requireNonNull(redisTemplate.opsForValue().get(Constants.REDIS_CHUNK_SIZES + fileId)).toString()) + chunksSize, Duration.ofMinutes(1));
             }
@@ -275,29 +275,34 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     根据文件ID或分享ID加载视频文件。如果是视频文件，则提供.ts格式的文件下载。
      */
     @Override
-    public void tsGetVideoInfo(String fileId, HttpServletResponse response, String token, String shareId) {
+    public void tsGetVideoInfo(String userId, String fileId, HttpServletResponse response, String token, String shareId) {
+        if ((userId != null && token == null && shareId == null && fileId.endsWith(".ts"))) {
+            log.info("[管理员]正在加载视频文件：{}", fileId);
+            File userFileCutDir = new File("file_target_cut" + File.separator + userId + File.separator + fileId);
+            FileUtils.readFile(response, userFileCutDir);
+        }
         if ((token != null && shareId == null && fileId.endsWith(".ts"))) {
-            log.info("正在加载视频文件：{}", fileId);
+            log.info("[用户]正在加载视频文件：{}", fileId);
             Claims claims = jwtUtils.getClaims(token);
-            String userId = claims.get("userId", String.class);
+            userId = claims.get("userId", String.class);
             File userFileCutDir = new File("file_target_cut" + File.separator + userId + File.separator + fileId);
             FileUtils.readFile(response, userFileCutDir);
         }
         if (token == null && shareId != null && fileId.endsWith(".ts")) {
             log.info("[分享]正在加载视频文件：{}", fileId);
-            String userId = fileShareMapper.selectById(shareId).getUserId();
+            userId = fileShareMapper.selectById(shareId).getUserId();
             File userFileCutDir = new File("file_target_cut" + File.separator + userId + File.separator + fileId);
             FileUtils.readFile(response, userFileCutDir);
         } else if (!fileId.endsWith(".ts")) {
             FileInfo fileInfo = baseMapper.selectById(fileId);
             if (fileInfo != null && fileInfo.getFileCategory() == 1) {
-                String userId = fileInfo.getUserId();
+                userId = fileInfo.getUserId();
                 String fileName = fileInfo.getFilePath().substring(fileInfo.getFilePath().lastIndexOf(File.separator));
                 File userFileCutDir = new File("file_target_cut" + File.separator + userId);
                 File m3u8File = new File(userFileCutDir.getAbsoluteFile() + File.separator + fileName.substring(0, fileName.lastIndexOf(".")) + Constants.FILE_TYPE_M3U8);
                 FileUtils.readFile(response, m3u8File);
             } else {
-                String userId = Objects.requireNonNull(fileInfo).getUserId();
+                userId = Objects.requireNonNull(fileInfo).getUserId();
                 String fileName = fileInfo.getFilePath().substring(fileInfo.getFilePath().lastIndexOf(File.separator));
                 File userFileTargetDir = new File("file_target" + File.separator + userId);
                 File othersFile = new File(userFileTargetDir.getPath() + File.separator + fileName);
@@ -429,15 +434,17 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     为指定文件生成一个有效的下载链接。返回一个唯一的随机代码，用户可通过该代码下载文件。
      */
     @Override
-    public String createDownloadUrl(String fileId, String token, String shareId) {
+    public String createDownloadUrl(String fileId, String token, String shareId, String userId) {
         FileInfo fileInfo;
         try {
-            Claims claims = jwtUtils.getClaims(token);
-            String userId = claims.get("userId", String.class);
+            if (token != null) {
+                Claims claims = jwtUtils.getClaims(token);
+                userId = claims.get("userId", String.class);
+            }
             fileInfo = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileId, fileId).eq(FileInfo::getFolderType, (short) 0).isNull(FileInfo::getRecoveryTime).one();
         } catch (RuntimeException e) {
             log.info("无法获取到用户token，可能为分享页面的createDownloadUrl，{}", e.getMessage());
-            String userId = fileShareMapper.selectById(shareId).getUserId();
+            userId = fileShareMapper.selectById(shareId).getUserId();
             fileInfo = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileId, fileId).eq(FileInfo::getFolderType, (short) 0).isNull(FileInfo::getRecoveryTime).one();
         }
         if (fileInfo == null) {

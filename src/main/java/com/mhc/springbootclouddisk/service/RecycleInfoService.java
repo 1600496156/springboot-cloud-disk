@@ -6,6 +6,8 @@ import com.mhc.springbootclouddisk.entity.domain.FileInfo;
 import com.mhc.springbootclouddisk.entity.vo.LoadDataListVo;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.util.List;
+
 public interface RecycleInfoService extends IService<FileInfo> {
     LoadDataListVo loadRecycleList(Page<FileInfo> fileInfoPage, String token);
 

@@ -1,9 +1,14 @@
 package com.mhc.springbootclouddisk.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mhc.springbootclouddisk.common.constants.Constants;
 import com.mhc.springbootclouddisk.common.exception.ServerException;
+import com.mhc.springbootclouddisk.entity.domain.FileInfo;
 import com.mhc.springbootclouddisk.entity.domain.UserInfo;
+import com.mhc.springbootclouddisk.entity.dto.SendEmailCodeDto;
 import com.mhc.springbootclouddisk.entity.dto.UserLoginDto;
 import com.mhc.springbootclouddisk.entity.dto.UserSpaceDto;
 import com.mhc.springbootclouddisk.mapper.UserInfoMapper;
@@ -15,6 +20,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,6 +50,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     @Resource
     private JwtUtils jwtUtils;
 
+    @Resource
+    private RedisTemplate<Object, Object> redisTemplate;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void register(String email, String emailCode, String nickName, String password) {
@@ -65,7 +74,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         user.setEmail(email);
         user.setPassword(password);
         user.setUseSpace(0L);
-        user.setTotalSpace(1024L * 1024L * 1024L);
+        SendEmailCodeDto sendEmailCodeDto = (SendEmailCodeDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_SEND_EMAIL_CODE_DTO);
+        if (sendEmailCodeDto == null) {
+            sendEmailCodeDto = new SendEmailCodeDto();
+            redisTemplate.opsForValue().set(Constants.REDIS_KEY_SEND_EMAIL_CODE_DTO, sendEmailCodeDto);
+        }
+        user.setTotalSpace(sendEmailCodeDto.getUserInitUseSpace());
         this.save(user);
     }
 
@@ -78,14 +92,11 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
         } catch (ArithmeticException e) {
             log.error(e.getMessage());
-            throw new ServerException("authenticationManager-账号或者密码错误");
+            throw new ServerException("登录失败，你的账号可能被封禁");
         }
         UserInfo user = (UserInfo) authentication.getPrincipal();
         if (user == null) {
             throw new ServerException("账号或者密码错误，请重新输入");
-        }
-        if (user.getStatus() == 1) {
-            throw new ServerException("当前账号已经被禁止登录");
         }
         //更新最后登录时间
         lambdaUpdate().set(UserInfo::getLastLoginTime, LocalDateTime.now())
@@ -146,5 +157,16 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         userSpaceDto.setUseSpace(claims.get("useSpace", Long.class));
         userSpaceDto.setTotalSpace(claims.get("totalSpace", Long.class));
         return userSpaceDto;
+    }
+
+    @Override
+    public Page<UserInfo> loadUserListPage(Long pageNo, Long pageSize) {
+        //1.分页参数
+        Page<UserInfo> page = Page.of(pageNo, pageSize);
+        //2.排序参数
+        page.addOrder(OrderItem.desc("last_login_time"));
+        //3.开始分页查询
+        log.info("开始分页查询");
+        return this.page(page);
     }
 }

@@ -23,7 +23,7 @@ public interface FileInfoService extends IService<FileInfo> {
 
     void getImage(Integer imageFolder, String imageName, HttpServletResponse response);
 
-    void tsGetVideoInfo(String fileId, HttpServletResponse response, String token, String shareId);
+    void tsGetVideoInfo(String userId,String fileId, HttpServletResponse response, String token, String shareId);
 
     void newFolder(String filePid, String fileName, String token);
 
@@ -37,7 +37,7 @@ public interface FileInfoService extends IService<FileInfo> {
 
     void delFile(String fileIds, String token);
 
-    String createDownloadUrl(String fileId, String token, String shareId);
+    String createDownloadUrl(String fileId, String token, String shareId,String userId);
 
     void download(String code, HttpServletResponse response);
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mhc.springbootclouddisk.mapper.UserInfoMapper">
+    <update id="updateUserStatus">
+        update user_info set status=#{status} where user_id = #{userId}
+    </update>
+
+    <select id="selectAllUser" resultType="com.mhc.springbootclouddisk.entity.domain.UserInfo">
+        SELECT *
+        from user_info
+        <where>
+            <if test="nickNameFuzzy != null and status != ''">
+                nick_name like '%${nickNameFuzzy}%'
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+</mapper>

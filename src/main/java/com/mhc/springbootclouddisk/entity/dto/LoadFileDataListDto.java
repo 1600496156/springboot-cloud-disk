@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class LoadUserDataListDto {
+public class LoadFileDataListDto {
     private String fileId;
     private String userId;
     private String fileMd5;

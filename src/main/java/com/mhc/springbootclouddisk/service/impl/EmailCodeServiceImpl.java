@@ -23,11 +23,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.ZoneOffset;
 
 @Slf4j
 @Service
 public class EmailCodeServiceImpl extends ServiceImpl<EmailCodeMapper, EmailCode> implements EmailCodeService {
+
 
     @Resource
     private UserInfoMapper userInfoMapper;
@@ -86,16 +86,21 @@ public class EmailCodeServiceImpl extends ServiceImpl<EmailCodeMapper, EmailCode
 
             SendEmailCodeDto sendEmailCodeDto = (SendEmailCodeDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_SEND_EMAIL_CODE + toUserEmail);
             if (sendEmailCodeDto == null) {
-                sendEmailCodeDto = new SendEmailCodeDto();
-                String content = String.format(sendEmailCodeDto.getEmailContent(), randomEmailCode);
-                sendEmailCodeDto.setEmailContent(content);
+                SendEmailCodeDto sendEmailDto = (SendEmailCodeDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_SEND_EMAIL_CODE_DTO);
+                if (sendEmailDto == null) {
+                    sendEmailDto = new SendEmailCodeDto();
+                    redisTemplate.opsForValue().set(Constants.REDIS_KEY_SEND_EMAIL_CODE_DTO, sendEmailDto);
+                }
+                sendEmailCodeDto = sendEmailDto;
+                String content = String.format(sendEmailCodeDto.getRegisterEmailContent(), randomEmailCode);
+                sendEmailCodeDto.setRegisterEmailContent(content);
                 //重置邮箱验证码状态为已使用
                 lambdaUpdate()
                         .set(EmailCode::getStatus, 1)
                         .eq(EmailCode::getEmail, toUserEmail)
                         .eq(EmailCode::getStatus, 0)
                         .update();
-                log.info("成功重置邮箱【{}】为过期状态", toUserEmail);
+                log.info("成功重置邮箱【{}】验证码为过期状态", toUserEmail);
                 //存储验证码信息到数据库
                 EmailCode emailCode = new EmailCode();
                 emailCode.setEmail(toUserEmail);
@@ -104,10 +109,10 @@ public class EmailCodeServiceImpl extends ServiceImpl<EmailCodeMapper, EmailCode
                 redisTemplate.opsForValue().set(Constants.REDIS_KEY_SEND_EMAIL_CODE + toUserEmail, sendEmailCodeDto, Duration.ofMinutes(30));
                 log.info("发送邮箱验证码给【{}】成功！验证码为【{}】", toUserEmail, randomEmailCode);
             }
-            mimeMessageHelper.setSubject(sendEmailCodeDto.getMailTitle());
-            mimeMessageHelper.setText(sendEmailCodeDto.getEmailContent());
+            mimeMessageHelper.setSubject(sendEmailCodeDto.getRegisterEmailTitle());
+            mimeMessageHelper.setText(sendEmailCodeDto.getRegisterEmailContent());
             javaMailSender.send(mimeMessage);
-            log.info("发送邮箱验证码给【{}】成功！用户未使用验证码【{}】", toUserEmail, sendEmailCodeDto.getEmailContent());
+            log.info("发送邮箱验证码给【{}】成功！用户未使用验证码【{}】", toUserEmail, sendEmailCodeDto.getRegisterEmailContent());
         } catch (MessagingException e) {
             log.info("邮件发送失败", e);
             throw new ServerException("邮件发送失败");

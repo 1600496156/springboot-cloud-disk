@@ -69,21 +69,21 @@ public class ShowShareController {
 
     @PostMapping("getFile/{shareId}/{fileId}")
     public void getFile(@PathVariable("shareId") String shareId, @PathVariable("fileId") String fileId, HttpServletResponse response) {
-        fileInfoService.tsGetVideoInfo(fileId, response, null, shareId);
+        fileInfoService.tsGetVideoInfo(null,fileId, response, null, shareId);
         log.info("[分享]getFile获取文件信息成功");
     }
 
     @GetMapping("ts/getVideoInfo/{shareId}/{fileId}")
     public void getVideoInfo(@PathVariable("shareId") String shareId, @PathVariable("fileId") String fileId, HttpServletResponse response) {
-        fileInfoService.tsGetVideoInfo(fileId, response, null, shareId);
+        fileInfoService.tsGetVideoInfo(null,fileId, response, null, shareId);
         log.info("[分享]getVideoInfo获取文件信息成功");
     }
 
     @PostMapping("createDownloadUrl/{shareId}/{fileId}")
     public CloudDiskResult createDownloadUrl(@PathVariable("shareId") String shareId, @PathVariable("fileId") String fileId) {
-        String downloadUrl = fileInfoService.createDownloadUrl(fileId, null, shareId);
-        log.info("生成下载链接：{}", downloadUrl);
-        return CloudDiskResult.success(downloadUrl);
+        String code = fileInfoService.createDownloadUrl(fileId, null, shareId,null);
+        log.info("生成下载链接：{}", code);
+        return CloudDiskResult.success(code);
     }
 
     @GetMapping("download/{code}")
