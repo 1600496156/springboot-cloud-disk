@@ -168,4 +168,13 @@ public class LoginController {
         return CloudDiskResult.success();
     }
 
+    @PostMapping("updatePassword")
+    public CloudDiskResult updatePassword(@RequestParam("password") @Length(min = 8, max = 18) String password,
+                                          @CookieValue(name = "Authorization", required = false) String jwt,
+                                          HttpServletResponse response, HttpSession session) {
+        userInfoService.updatePassword(password, jwt);
+        log.info("用户执行修改密码成功");
+        logout(response, session);
+        return CloudDiskResult.success();
+    }
 }

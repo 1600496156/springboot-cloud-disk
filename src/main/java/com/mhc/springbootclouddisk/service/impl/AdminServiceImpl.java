@@ -60,7 +60,7 @@ public class AdminServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> impl
         // 执行分页查询
         List<FileInfo> fileList = query.list(fileInfoPage);
         // 根据userId批量查询用户信息
-        List<UserInfo> userList = userInfoMapper.selectBatchIds(fileList.stream().map(FileInfo::getUserId).collect(Collectors.toList()));
+        List<UserInfo> userList = userInfoMapper.selectByIds(fileList.stream().map(FileInfo::getUserId).collect(Collectors.toList()));
         // 组装返回对象
         return getLoadUserDataListVo(fileInfoPage, userList, fileList);
     }

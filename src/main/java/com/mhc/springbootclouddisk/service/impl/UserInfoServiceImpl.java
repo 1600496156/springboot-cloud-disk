@@ -169,4 +169,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         log.info("开始分页查询");
         return this.page(page);
     }
+
+    @Override
+    public void updatePassword(String password, String jwt) {
+        Claims claims = jwtUtils.getClaims(jwt);
+        String userId = claims.get("userId", String.class);
+        password = passwordEncoder.encode(password);
+        lambdaUpdate().eq(UserInfo::getUserId,userId).set(UserInfo::getPassword, password).update();
+    }
 }

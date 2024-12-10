@@ -1,6 +1,7 @@
 package com.mhc.springbootclouddisk.service.impl;
 
 
+import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mhc.springbootclouddisk.common.constants.Constants;
@@ -15,7 +16,6 @@ import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -52,7 +52,7 @@ public class EmailCodeServiceImpl extends ServiceImpl<EmailCodeMapper, EmailCode
         }
 
         //发送新的邮箱验证码
-        String randomEmailCode = RandomStringUtils.random(Constants.LENGTH_4, false, true);
+        String randomEmailCode = RandomUtil.randomNumbers(Constants.LENGTH_4);
         startSendEmailCode(email, randomEmailCode);
     }
 
