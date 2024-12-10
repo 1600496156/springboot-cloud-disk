@@ -45,12 +45,12 @@ public class FileInfoController {
 
     @GetMapping("ts/getVideoInfo/{fileId}")
     public void tsGetVideoInfo(@PathVariable String fileId, HttpServletResponse response, @CookieValue(name = "Authorization", required = false) String token) {
-        fileInfoService.tsGetVideoInfo(fileId, response, token, null);
+        fileInfoService.tsGetVideoInfo(null,fileId, response, token, null);
     }
 
     @PostMapping("getFile/{fileId}")
     public void getFile(@PathVariable String fileId, HttpServletResponse response, @CookieValue(name = "Authorization", required = false) String token) {
-        fileInfoService.tsGetVideoInfo(fileId, response, token, null);
+        fileInfoService.tsGetVideoInfo(null,fileId, response, token, null);
     }
 
     @PostMapping("newFolder")
@@ -91,7 +91,8 @@ public class FileInfoController {
 
     @PostMapping("createDownloadUrl/{fileId}")
     public CloudDiskResult createDownloadUrl(@PathVariable("fileId") String fileId, @CookieValue(name = "Authorization", required = false) String token) {
-        String code = fileInfoService.createDownloadUrl(fileId, token, null);
+        String code = fileInfoService.createDownloadUrl(fileId, token, null,null);
+        log.info("生成下载链接：{}", code);
         return CloudDiskResult.success(code);
     }
 

@@ -1,5 +1,6 @@
 package com.mhc.springbootclouddisk.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mhc.springbootclouddisk.entity.domain.UserInfo;
 import com.mhc.springbootclouddisk.entity.dto.UserLoginDto;
@@ -19,4 +20,6 @@ public interface UserInfoService extends IService<UserInfo> {
     void updateUserAvatar(MultipartFile avatar,HttpServletResponse response,String jwt);
 
     UserSpaceDto getUseSpace(String jwt);
+
+    Page<UserInfo> loadUserListPage(Long pageNo, Long pageSize);
 }

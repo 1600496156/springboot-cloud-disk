@@ -1,7 +1,6 @@
 package com.mhc.springbootclouddisk.common.exception;
 
 import com.mhc.springbootclouddisk.common.response.CloudDiskResult;
-import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,9 +8,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-    @ExceptionHandler(Exception.class)
-    public CloudDiskResult bindExceptionHandler(Exception e) {
+    @ExceptionHandler(RuntimeException.class)
+    public CloudDiskResult bindExceptionHandler(RuntimeException e) {
         log.error("全局异常管理器 - 参数校验捕获异常：{}",e.getMessage());
+        e.printStackTrace();
         return new CloudDiskResult("error",500,e.getMessage(),null);
     }
 }

@@ -1,6 +1,7 @@
 package com.mhc.springbootclouddisk.web;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mhc.springbootclouddisk.common.exception.ServerException;
 import com.mhc.springbootclouddisk.entity.domain.UserInfo;
 import com.mhc.springbootclouddisk.mapper.UserInfoMapper;
 import jakarta.annotation.Resource;
@@ -21,6 +22,9 @@ public class UserInfoUserDetailsService implements UserDetailsService {
         LambdaQueryWrapper<UserInfo> user = new LambdaQueryWrapper<UserInfo>().eq(UserInfo::getEmail, username);
         UserInfo userInfo = userInfoMapper.selectOne(user);
         log.info("UserInfoUserDetailsService根据用户名：{}，查询到用户:{}", username,userInfo);
+        if (userInfo == null) {
+            throw new ServerException("登录失败，你的账号可能被封禁");
+        }
         //TODO查询权限
         return userInfo;
     }
