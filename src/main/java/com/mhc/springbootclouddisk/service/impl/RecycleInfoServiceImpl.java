@@ -123,7 +123,6 @@ public class RecycleInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo
                 log.info("删除文件-更新用户Token成功");
             }
         });
-
     }
 
     private void delAllFile(List<String> fileList, String userId) {

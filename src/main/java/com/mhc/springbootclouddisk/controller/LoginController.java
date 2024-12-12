@@ -52,7 +52,7 @@ public class LoginController {
         String code = specCaptcha.text();
         if (type == null || type == 0) {
             session.setAttribute(Constants.CHECK_CODE, code);
-            log.info("登录页面生成验证码：{}", code);
+            log.info("登录注册页面生成验证码：{}", code);
         } else {
             session.setAttribute(Constants.CHECK_CODE_EMAIL, code);
             log.info("发送邮箱验证码页面生成验证码：{}", code);
