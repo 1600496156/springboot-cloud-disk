@@ -22,11 +22,13 @@ import com.mhc.springbootclouddisk.mapper.FileInfoMapper;
 import com.mhc.springbootclouddisk.mapper.FileShareMapper;
 import com.mhc.springbootclouddisk.mapper.UserInfoMapper;
 import com.mhc.springbootclouddisk.service.FileInfoService;
+import com.mhc.springbootclouddisk.service.UserInfoService;
 import com.mhc.springbootclouddisk.utils.FileUtils;
 import com.mhc.springbootclouddisk.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -68,6 +70,9 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     @Resource
     private FileShareMapper fileShareMapper;
 
+    @Resource
+    private UserInfoService userInfoService;
+
     private final ReentrantLock lock = new ReentrantLock();
 
     /*
@@ -88,10 +93,17 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     根据分类、文件名模糊匹配等条件加载文件列表。
      */
     @Override
-    public LoadDataListVo loadDataList(LoadDataListDto loadDataListDto, Page<FileInfo> loadDataListPage, String token) {
+    public LoadDataListVo loadDataList(LoadDataListDto loadDataListDto, Page<FileInfo> loadDataListPage, String token, HttpServletResponse response, HttpSession session) {
         String category = loadDataListDto.getCategory();
         short fileCategory = (short) (category.equals(Constants.CATEGORY_ALL) ? 0 : category.equals(Constants.CATEGORY_VIDEO) ? 1 : category.equals(Constants.CATEGORY_MUSIC) ? 2 : category.equals(Constants.CATEGORY_IMAGE) ? 3 : category.equals(Constants.CATEGORY_DOC) ? 4 : 5);
-        Claims claims = jwtUtils.getClaims(token);
+        Claims claims;
+        try {
+            claims = jwtUtils.getClaims(token);
+        } catch (Exception e) {
+            userInfoService.logout(response, session);
+            log.info("用户登录已过期，需要重新登录");
+            throw new ServerException("你的登录已过期，请重新登录");
+        }
         String userId = (String) claims.get("userId");
         String fileNameFuzzy = loadDataListDto.getFileNameFuzzy();
         List<FileInfo> list;
@@ -174,12 +186,12 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         FileOutputStream fileOutputStream = null;
         File userTempFile = new File(userTempFileDirs.getPath() + File.separator + uploadFileDto.getFileName() + "_" + uploadFileDto.getChunkIndex());
         try {
-            UserSpaceDto userSpaceDto = (UserSpaceDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_UPLOAD_USE_SPACE);
+            UserSpaceDto userSpaceDto = (UserSpaceDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_UPLOAD_USE_SPACE + userId);
             if (userSpaceDto == null) {
                 userSpaceDto = new UserSpaceDto();
                 userSpaceDto.setUseSpace(useSpace);
                 userSpaceDto.setTotalSpace(totalSpace);
-                redisTemplate.opsForValue().set(Constants.REDIS_KEY_UPLOAD_USE_SPACE, userSpaceDto, Duration.ofMinutes(1));
+                redisTemplate.opsForValue().set(Constants.REDIS_KEY_UPLOAD_USE_SPACE + userId, userSpaceDto, Duration.ofMinutes(1));
             }
 
             // 检查文件是否存在
@@ -204,14 +216,14 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             log.info("文件chunksSize大小：{}", chunksSize);
             userSpaceDto.setUseSpace(userSpaceDto.getUseSpace() + chunksSize);
             log.info("{}+{}=={}", userSpaceDto.getUseSpace() - chunksSize, chunksSize, userSpaceDto.getUseSpace());
-            redisTemplate.opsForValue().set(Constants.REDIS_KEY_UPLOAD_USE_SPACE, userSpaceDto, Duration.ofMinutes(1));
+            redisTemplate.opsForValue().set(Constants.REDIS_KEY_UPLOAD_USE_SPACE + userId, userSpaceDto, Duration.ofMinutes(1));
             if (userSpaceDto.getUseSpace() > totalSpace) {
                 log.info("强制关闭文件输出流");
                 if (fileOutputStream != null) {
                     fileOutputStream.close();
                 }
                 log.info("可使用的空间不足，传输中断");
-                redisTemplate.delete(Constants.REDIS_KEY_UPLOAD_USE_SPACE);
+                redisTemplate.delete(Constants.REDIS_KEY_UPLOAD_USE_SPACE + userId);
                 log.info("可使用的空间不足，删除用户缓存");
                 fileUtils.deleteTempFile(uploadFileDto, userTempFileDirs);
                 throw new ServerException("可使用的空间不足，传输中断");
@@ -256,7 +268,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
                     fileUtils.transferFile(uploadFileDto, fileInfo);
                     UserInfo user = userInfoMapper.selectById(userId);
                     log.info("普通上传-从数据库中获取用户信息成功");
-                    UserSpaceDto userSpaceDto = (UserSpaceDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_UPLOAD_USE_SPACE);
+                    UserSpaceDto userSpaceDto = (UserSpaceDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_UPLOAD_USE_SPACE + userId);
                     if (userSpaceDto != null && Objects.equals(userSpaceDto.getTotalSpace(), user.getTotalSpace())) {
                         user.setUseSpace(userSpaceDto.getUseSpace());
                         log.info("更新用户空间：{}/{}", userSpaceDto.getUseSpace(), user.getTotalSpace());
@@ -488,7 +500,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         createDownloadUrlDto.setCode(randomCode);
         createDownloadUrlDto.setFilePath(fileInfo.getFilePath());
         createDownloadUrlDto.setFileName(fileInfo.getFileName());
-        redisTemplate.opsForValue().set(Constants.REDIS_KEY_CREATE_DOWNLOAD_URL_DTO, createDownloadUrlDto, Duration.ofMinutes(30));
+        redisTemplate.opsForValue().set(Constants.REDIS_KEY_CREATE_DOWNLOAD_URL_DTO + randomCode, createDownloadUrlDto, Duration.ofMinutes(30));
         return randomCode;
     }
 
@@ -497,7 +509,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
      */
     @Override
     public void download(String code, HttpServletResponse response) {
-        CreateDownloadUrlDto createDownloadUrlDto = (CreateDownloadUrlDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_CREATE_DOWNLOAD_URL_DTO);
+        CreateDownloadUrlDto createDownloadUrlDto = (CreateDownloadUrlDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_CREATE_DOWNLOAD_URL_DTO + code);
         if (createDownloadUrlDto == null) {
             log.info("无法获取下载链接，或者下载链接过期");
             throw new ServerException("无法获取下载链接，或者下载链接过期");

@@ -141,23 +141,16 @@ public class LoginController {
     }
 
     @PostMapping("getUseSpace")
-    public CloudDiskResult getUseSpace(@CookieValue(name = "Authorization", required = false) String jwt) {
-        UserSpaceDto userSpaceDto = userInfoService.getUseSpace(jwt);
+    public CloudDiskResult getUseSpace(@CookieValue(name = "Authorization", required = false) String jwt,
+                                       HttpServletResponse response, HttpSession session) {
+        UserSpaceDto userSpaceDto = userInfoService.getUseSpace(jwt,response,session);
         log.info("获取用户空间信息userSpaceDto对象成功");
         return CloudDiskResult.success(userSpaceDto);
     }
 
     @PostMapping("logout")
     public CloudDiskResult logout(HttpServletResponse response, HttpSession session) {
-        Cookie userInfo = new Cookie("userInfo", null);
-        userInfo.setPath("/");
-        response.addCookie(userInfo);
-        log.info("成功清空用户cookie-userInfo");
-        Cookie authorization = new Cookie("Authorization", null);
-        response.addCookie(authorization);
-        log.info("成功清空用户cookie-authorization(token)");
-        session.invalidate();
-        log.info("成功清空用户session，用户退出成功");
+        userInfoService.logout(response,session);
         return CloudDiskResult.success();
     }
 
@@ -174,7 +167,7 @@ public class LoginController {
                                           HttpServletResponse response, HttpSession session) {
         userInfoService.updatePassword(password, jwt);
         log.info("用户执行修改密码成功");
-        logout(response, session);
+        userInfoService.logout(response,session);
         return CloudDiskResult.success();
     }
 }

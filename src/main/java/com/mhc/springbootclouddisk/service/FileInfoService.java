@@ -10,6 +10,7 @@ import com.mhc.springbootclouddisk.entity.vo.LoadDataListVo;
 import com.mhc.springbootclouddisk.entity.dto.UploadFileDto;
 import com.mhc.springbootclouddisk.entity.vo.UploadFileVo;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
 
@@ -17,13 +18,13 @@ public interface FileInfoService extends IService<FileInfo> {
 
     Page<FileInfo> loadDataListPage(Long pageNo, Long pageSize);
 
-    LoadDataListVo loadDataList(LoadDataListDto loadDataListDto, Page<FileInfo> loadDataListPage, String token);
+    LoadDataListVo loadDataList(LoadDataListDto loadDataListDto, Page<FileInfo> loadDataListPage, String token,HttpServletResponse response, HttpSession session);
 
     UploadFileVo uploadFile(String token, UploadFileDto uploadFileDto, HttpServletResponse response);
 
     void getImage(Integer imageFolder, String imageName, HttpServletResponse response);
 
-    void tsGetVideoInfo(String userId,String fileId, HttpServletResponse response, String token, String shareId);
+    void tsGetVideoInfo(String userId, String fileId, HttpServletResponse response, String token, String shareId);
 
     void newFolder(String filePid, String fileName, String token);
 
@@ -37,7 +38,7 @@ public interface FileInfoService extends IService<FileInfo> {
 
     void delFile(String fileIds, String token);
 
-    String createDownloadUrl(String fileId, String token, String shareId,String userId);
+    String createDownloadUrl(String fileId, String token, String shareId, String userId);
 
     void download(String code, HttpServletResponse response);
 }

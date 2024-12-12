@@ -18,7 +18,9 @@ import com.mhc.springbootclouddisk.utils.AliOSSUtils;
 import com.mhc.springbootclouddisk.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -151,8 +153,15 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     }
 
     @Override
-    public UserSpaceDto getUseSpace(String jwt) {
-        Claims claims = jwtUtils.getClaims(jwt);
+    public UserSpaceDto getUseSpace(String jwt, HttpServletResponse response, HttpSession session) {
+        Claims claims;
+        try {
+            claims = jwtUtils.getClaims(jwt);
+        } catch (Exception e) {
+            logout(response, session);
+            log.info("用户登录已过期，需要重新登录");
+            throw new ServerException("你的登录已过期，请重新登录");
+        }
         UserSpaceDto userSpaceDto = new UserSpaceDto();
         userSpaceDto.setUseSpace(claims.get("useSpace", Long.class));
         userSpaceDto.setTotalSpace(claims.get("totalSpace", Long.class));
@@ -175,6 +184,20 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         Claims claims = jwtUtils.getClaims(jwt);
         String userId = claims.get("userId", String.class);
         password = passwordEncoder.encode(password);
-        lambdaUpdate().eq(UserInfo::getUserId,userId).set(UserInfo::getPassword, password).update();
+        lambdaUpdate().eq(UserInfo::getUserId, userId).set(UserInfo::getPassword, password).update();
+    }
+
+    @Override
+    public void logout(HttpServletResponse response, HttpSession session) {
+        Cookie userInfo = new Cookie("userInfo", null);
+        userInfo.setPath("/");
+        response.addCookie(userInfo);
+        log.info("成功清空用户cookie-userInfo");
+        Cookie authorization = new Cookie("Authorization", null);
+        authorization.setPath("/api");
+        response.addCookie(authorization);
+        log.info("成功清空用户cookie-authorization(token)");
+        session.invalidate();
+        log.info("成功清空用户session，用户退出成功");
     }
 }
