@@ -7,12 +7,13 @@ import com.mhc.springbootclouddisk.entity.domain.FileShare;
 import com.mhc.springbootclouddisk.entity.vo.GetFolderInfoVo;
 import com.mhc.springbootclouddisk.entity.vo.GetShareLoginInfoDto;
 import com.mhc.springbootclouddisk.entity.vo.LoadDataListVo;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
 public interface ShowShareService extends IService<FileShare> {
-    GetShareLoginInfoDto getShareLoginInfo(String shareId, String token,String sharingCode);
+    GetShareLoginInfoDto getShareLoginInfo(String shareId, String token, String sharingCode);
 
     GetShareLoginInfoDto getShareInfo(String shareId);
 

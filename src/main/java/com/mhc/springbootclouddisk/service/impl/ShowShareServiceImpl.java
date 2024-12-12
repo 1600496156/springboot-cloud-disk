@@ -76,7 +76,7 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
             claims = jwtUtils.getClaims(token);
         } catch (RuntimeException e) {
             log.info("获取不到用户token，需要验证分享码({})", e.getMessage());
-            return null;
+            claims = jwtUtils.parseToken(sharingCode);
         }
         try {
             Claims sharingCodeClaims = jwtUtils.parseToken(sharingCode);
@@ -126,13 +126,15 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
     public void checkShareCode(String shareId, String code, HttpServletResponse response) {
         FileShare fileShare = lambdaQuery().eq(FileShare::getShareId, shareId).eq(FileShare::getCode, code).one();
         if (fileShare == null) {
-            log.info("用户输入的分享码：{}，验证失败", code);
-            throw new ServerException("用户输入的分享码：" + code + "，验证失败");
+            log.info("用户输入的分享码：{}不正确，验证失败", code);
+            throw new ServerException("你输入的分享码：" + code + " 不正确，验证失败");
         }
         log.info("验证通过，分享码通过，获取到文件分享信息：{}", fileShare);
         lambdaUpdate().eq(FileShare::getShareId, shareId).eq(FileShare::getCode, code).set(FileShare::getShowCount, fileShare.getShowCount() + 1).update();
         HashMap<String, Object> sharingCode = new HashMap<>();
         sharingCode.put("sharingCode", code);
+        sharingCode.put("visitor", "visitor");
+        sharingCode.put("avatar", "https://springboot-cloud-disk.oss-cn-shenzhen.aliyuncs.com/Avatar/default.jpg");
         String token = jwtUtils.createToken(sharingCode);
         Cookie cookie = new Cookie("sharingCode", token);
         cookie.setPath("/api");
@@ -189,6 +191,10 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
         List<String> shareFileList = Arrays.asList(shareFileIds.split(","));
         Claims claims = jwtUtils.getClaims(token);
         String newUserId = claims.get("userId", String.class);
+        if (newUserId==null){
+            log.info("访客无法保存到我的云盘,请先进行登录后保存");
+            throw new ServerException("访客无法保存到我的云盘,请先进行登录后保存");
+        }
         // 创建用户文件夹
         createUserDirectories(newUserId);
         Map<String, String> fileIdMap = new HashMap<>();

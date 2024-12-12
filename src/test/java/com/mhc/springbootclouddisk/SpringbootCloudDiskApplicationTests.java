@@ -4,6 +4,7 @@ import com.mhc.springbootclouddisk.entity.domain.UserInfo;
 import com.mhc.springbootclouddisk.mapper.UserInfoMapper;
 import com.mhc.springbootclouddisk.utils.WindowsUtils;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,6 +14,7 @@ import java.time.Duration;
 import java.util.Arrays;
 
 @SpringBootTest
+@Slf4j
 class SpringbootCloudDiskApplicationTests {
 
     @Resource
@@ -65,4 +67,17 @@ class SpringbootCloudDiskApplicationTests {
         String[] split = path.split("/");
         System.out.println(Arrays.toString(split));
     }
+
+    @Test
+    public void contextLoads8(){
+        File userTempFile = new File("C:\\Users\\Lenovo\\Desktop\\springboot-cloud-disk\\file\\805b51062805cb6cbb4f60298b8cc9df\\VID20170813203944.mp4_0");
+        // 检查文件是否存在
+        if (userTempFile.exists()) {
+            long fileSize = userTempFile.length(); // 获取文件大小（以字节为单位）
+            log.info("文件 {} 的大小为：{} 字节", userTempFile.getName(), fileSize);
+        } else {
+            log.warn("文件 {} 不存在，无法获取大小", userTempFile.getName());
+        }
+    }
+
 }

@@ -30,7 +30,9 @@ public class ShowShareController {
     private FileInfoService fileInfoService;
 
     @PostMapping("getShareLoginInfo")
-    public CloudDiskResult getShareLoginInfo(@RequestParam("shareId") String shareId, @CookieValue(name = "Authorization", required = false) String token, @CookieValue(name = "sharingCode", required = false) String sharingCode) {
+    public CloudDiskResult getShareLoginInfo(@RequestParam("shareId") String shareId,
+                                             @CookieValue(name = "Authorization", required = false) String token,
+                                             @CookieValue(name = "sharingCode", required = false) String sharingCode) {
         GetShareLoginInfoDto getShareLoginInfoDto = showShareService.getShareLoginInfo(shareId, token, sharingCode);
         log.info("正在访问共享文件的用户信息：{}", getShareLoginInfoDto);
         return CloudDiskResult.success(getShareLoginInfoDto);

@@ -15,18 +15,15 @@ public class WindowsUtils {
         try {
             // 调用CMD命令
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", cmd); // /c参数表示执行后关闭CMD窗口
-
             processBuilder.redirectErrorStream(true); // 将错误输出流与标准输出流合并
             Process process = processBuilder.start();
-
             // 获取命令输出结果
             InputStream inputStream = process.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream,"GBK"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "GBK"));
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
-
             // 等待命令执行完成
             process.waitFor();
         } catch (IOException | InterruptedException e) {

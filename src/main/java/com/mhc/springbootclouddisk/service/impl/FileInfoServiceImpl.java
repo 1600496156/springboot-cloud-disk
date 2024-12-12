@@ -1,5 +1,6 @@
 package com.mhc.springbootclouddisk.service.impl;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
@@ -84,7 +85,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     }
 
     /*
-    根据分类、文件名模糊匹配、父级文件夹等条件加载文件列表。
+    根据分类、文件名模糊匹配等条件加载文件列表。
      */
     @Override
     public LoadDataListVo loadDataList(LoadDataListDto loadDataListDto, Page<FileInfo> loadDataListPage, String token) {
@@ -162,17 +163,17 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         }
 
         //普通传输
-        long chunksSize;
         File userTempFileDirs = new File("file" + File.separator + userId);
         if (!userTempFileDirs.exists()) {
             boolean mkdirStatus = userTempFileDirs.mkdirs();
             log.info("创建用户文件夹状态：{}", mkdirStatus);
         }
+
+        lock.lock();
+        long chunksSize;
+        FileOutputStream fileOutputStream = null;
         File userTempFile = new File(userTempFileDirs.getPath() + File.separator + uploadFileDto.getFileName() + "_" + uploadFileDto.getChunkIndex());
-        try (
-                FileOutputStream fileOutputStream = new FileOutputStream(userTempFile)
-        ) {
-            lock.lock();
+        try {
             UserSpaceDto userSpaceDto = (UserSpaceDto) redisTemplate.opsForValue().get(Constants.REDIS_KEY_UPLOAD_USE_SPACE);
             if (userSpaceDto == null) {
                 userSpaceDto = new UserSpaceDto();
@@ -180,7 +181,17 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
                 userSpaceDto.setTotalSpace(totalSpace);
                 redisTemplate.opsForValue().set(Constants.REDIS_KEY_UPLOAD_USE_SPACE, userSpaceDto, Duration.ofMinutes(1));
             }
-            chunksSize = uploadFileDto.getFile().getInputStream().transferTo(fileOutputStream);
+
+            // 检查文件是否存在
+            if (userTempFile.exists()) {
+                long fileSize = userTempFile.length(); // 获取文件大小（以字节为单位）
+                log.info("文件 {} 的分片已经存在，跳过读取输入流", userTempFile.getName());
+                chunksSize = fileSize;
+            } else {
+                log.warn("文件 {} 不存在，开始读取文件", userTempFile.getName());
+                fileOutputStream = new FileOutputStream(userTempFile);
+                chunksSize = uploadFileDto.getFile().getInputStream().transferTo(fileOutputStream);
+            }
             if (redisTemplate.opsForValue().get(Constants.CHUNKS_SIZES + fileId) == null) {
                 redisTemplate.opsForValue().set(Constants.CHUNKS_SIZES + fileId, chunksSize, Duration.ofMinutes(1));
             }
@@ -196,7 +207,9 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             redisTemplate.opsForValue().set(Constants.REDIS_KEY_UPLOAD_USE_SPACE, userSpaceDto, Duration.ofMinutes(1));
             if (userSpaceDto.getUseSpace() > totalSpace) {
                 log.info("强制关闭文件输出流");
-                fileOutputStream.close();
+                if (fileOutputStream != null) {
+                    fileOutputStream.close();
+                }
                 log.info("可使用的空间不足，传输中断");
                 redisTemplate.delete(Constants.REDIS_KEY_UPLOAD_USE_SPACE);
                 log.info("可使用的空间不足，删除用户缓存");
@@ -211,6 +224,13 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             log.info("文件转换失败：{}", e.getMessage());
             throw new ServerException("文件转换失败：" + e.getMessage());
         } finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    log.info("上传流关闭失败{}", e.getMessage());
+                }
+            }
             lock.unlock();
         }
         if (uploadFileDto.getChunkIndex() == uploadFileDto.getChunks() - 1) {
@@ -448,6 +468,11 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
                 Claims claims = jwtUtils.getClaims(token);
                 userId = claims.get("userId", String.class);
             }
+            if (userId == null) {
+                //访客正在下载共享文件
+                log.info("访客正在下载共享文件");
+                throw new RuntimeException();
+            }
             fileInfo = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileId, fileId).eq(FileInfo::getFolderType, (short) 0).isNull(FileInfo::getRecoveryTime).one();
         } catch (RuntimeException e) {
             log.info("无法获取到用户token，可能为分享页面的createDownloadUrl，{}", e.getMessage());
@@ -455,7 +480,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             fileInfo = lambdaQuery().eq(FileInfo::getUserId, userId).eq(FileInfo::getFileId, fileId).eq(FileInfo::getFolderType, (short) 0).isNull(FileInfo::getRecoveryTime).one();
         }
         if (fileInfo == null) {
-            log.info("查找不到文件，无法创建下载链接");
+            log.info("该文件共享者已删除，无法创建下载链接");
             throw new ServerException("查找不到文件，无法创建下载链接");
         }
         String randomCode = RandomUtil.randomString(Constants.LENGTH_30);
