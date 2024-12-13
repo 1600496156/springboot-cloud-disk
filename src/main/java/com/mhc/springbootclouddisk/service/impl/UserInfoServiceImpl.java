@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mhc.springbootclouddisk.common.constants.Constants;
 import com.mhc.springbootclouddisk.common.exception.ServerException;
-import com.mhc.springbootclouddisk.entity.domain.FileInfo;
 import com.mhc.springbootclouddisk.entity.domain.UserInfo;
 import com.mhc.springbootclouddisk.entity.dto.SendEmailCodeDto;
 import com.mhc.springbootclouddisk.entity.dto.UserLoginDto;
@@ -104,7 +103,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         lambdaUpdate().set(UserInfo::getLastLoginTime, LocalDateTime.now())
                 .eq(UserInfo::getEmail, email).update();
         UserLoginDto userLoginDto = new UserLoginDto();
-        userLoginDto.setAvatar(user.getQqAvatar());
+        userLoginDto.setAvatar(user.getAvatar());
         userLoginDto.setUserId(user.getUserId());
         userLoginDto.setNickName(user.getNickName());
         userLoginDto.setAdmin(user.getEmail().equals("1600496156@qq.com"));
@@ -132,12 +131,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             log.info("avatar获取不到用户");
             return "https://springboot-cloud-disk.oss-cn-shenzhen.aliyuncs.com/Avatar/default.jpg";
         }
-        if (user.getQqAvatar() == null) {
+        if (user.getAvatar() == null) {
             String url = aliOSSUtils.defaultUpload(userId);
-            user.setQqAvatar(url);
-            lambdaUpdate().set(UserInfo::getQqAvatar, url).eq(UserInfo::getUserId, user.getUserId()).update();
+            user.setAvatar(url);
+            lambdaUpdate().set(UserInfo::getAvatar, url).eq(UserInfo::getUserId, user.getUserId()).update();
         }
-        return user.getQqAvatar();
+        return user.getAvatar();
     }
 
     @Override
@@ -145,7 +144,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         Claims claims = jwtUtils.getClaims(jwt);
         String userId = claims.get("userId", String.class);
         String url = aliOSSUtils.upload(avatar, userId);
-        lambdaUpdate().set(UserInfo::getQqAvatar, url).eq(UserInfo::getUserId, userId).update();
+        lambdaUpdate().set(UserInfo::getAvatar, url).eq(UserInfo::getUserId, userId).update();
         log.info("数据库更新头像链接成功");
         //更新token
         UserInfo user = lambdaQuery().eq(UserInfo::getUserId, userId).one();

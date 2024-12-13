@@ -56,7 +56,7 @@ public class JwtUtils {
         HashMap<String, Object> userInfoMap = new HashMap<>();
         userInfoMap.put("userId", user.getUserId());
         userInfoMap.put("nickName", user.getNickName());
-        userInfoMap.put("avatar", user.getQqAvatar());
+        userInfoMap.put("avatar", user.getAvatar());
         userInfoMap.put("useSpace", user.getUseSpace());
         userInfoMap.put("totalSpace", user.getTotalSpace());
         String token = createToken(userInfoMap);

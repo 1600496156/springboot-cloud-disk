@@ -17,8 +17,7 @@ public class UserInfo implements Serializable,UserDetails {
     private String userId;
     private String nickName;
     private String email;
-    private Integer qqOpenId;
-    private String qqAvatar;
+    private String avatar;
     private String password;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime joinTime;

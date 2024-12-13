@@ -97,7 +97,7 @@ public class ShowShareController {
     @PostMapping("saveShare")
     public CloudDiskResult saveShare(@RequestParam("shareId")String shareId,@RequestParam("shareFileIds")String shareFileIds,@RequestParam("myFolderId")String myFolderId,@CookieValue(name = "Authorization",required = false)String token) {
         showShareService.saveShare(shareId,shareFileIds,myFolderId,token);
-        log.info("[分享]保存到我的网盘成功");
+        log.info("[分享]保存到我的云盘成功");
         return CloudDiskResult.success();
     }
 }
