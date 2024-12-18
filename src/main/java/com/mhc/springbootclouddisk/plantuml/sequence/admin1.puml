@@ -1,0 +1,27 @@
+@startuml
+actor 管理员 as Admin
+participant 浏览器 as Browser
+participant controller as Controller
+participant service as Service
+participant 数据库 as DB
+
+group 启用/禁用账号
+  Admin -> Browser : 发起启用/禁用账号请求
+  Browser -> Controller : 提交请求
+  Controller -> Service : 调用方法更新账号状态
+  Service -> DB : 修改账号状态记录
+  DB --> Service : 返回更新结果
+  Service --> Controller : 返回处理成功信息
+  Controller --> Browser : 提示操作完成
+end
+
+group 调整存储空间
+  Admin -> Browser : 发起存储空间调整请求
+  Browser -> Controller : 提交调整请求
+  Controller -> Service : 调用方法更新存储配额
+  Service -> DB : 修改存储配额记录
+  DB --> Service : 返回更新结果
+  Service --> Controller : 返回处理成功信息
+  Controller --> Browser : 提示操作完成
+end
+@enduml

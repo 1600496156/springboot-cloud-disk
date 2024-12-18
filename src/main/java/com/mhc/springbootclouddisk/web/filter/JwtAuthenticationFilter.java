@@ -40,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUserId(userId);
-        userInfo.setQqAvatar(avatar);
+        userInfo.setAvatar(avatar);
         userInfo.setNickName(nickName);
         userInfo.setUseSpace(useSpace);
         userInfo.setTotalSpace(totalSpace);

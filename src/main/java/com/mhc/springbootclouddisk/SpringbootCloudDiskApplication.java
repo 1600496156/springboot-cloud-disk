@@ -7,9 +7,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableTransactionManagement
 public class SpringbootCloudDiskApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(SpringbootCloudDiskApplication.class, args);
     }
-
 }

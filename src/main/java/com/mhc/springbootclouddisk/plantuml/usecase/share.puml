@@ -1,0 +1,15 @@
+@startuml
+left to right direction
+
+actor 用户 as User
+actor "外部访问者" as ExternalUser
+
+usecase "访问分享文件" as UC1
+usecase "校验分享权限" as UC2
+usecase "操作分享文件" as UC3
+
+User --> UC3 : 保存到网盘
+ExternalUser --> UC1 : 查看分享内容
+ExternalUser --> UC2 : 输入分享码
+ExternalUser --> UC3 : 下载文件
+@enduml

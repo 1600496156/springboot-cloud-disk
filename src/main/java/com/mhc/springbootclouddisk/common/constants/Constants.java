@@ -12,6 +12,7 @@ public class Constants {
     public static final String REDIS_KEY_DELETE_FILE_USE_SPACE = "delete_file_use_space";
     public static final String REDIS_KEY_CREATE_DOWNLOAD_URL_DTO = "create_download_url_dto";
     public static final String REDIS_CHUNK_SIZES = "redis_chunk_sizes";
+    public static final String REDIS_CHUNK_SAVE_SHARE_SIZES = "redis_chunk_save_share_sizes";
     public static final String REDIS_KEY_SEND_EMAIL_CODE_DTO = "redis_key_send_email_code_dto";
     public static final String REDIS_KEY_ADMIN_DELETE_USER_FILE_SPACE = "redis_key_admin_delete_user_file_space";
 

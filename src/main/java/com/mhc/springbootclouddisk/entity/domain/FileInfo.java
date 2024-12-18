@@ -20,16 +20,13 @@ public class FileInfo implements Serializable {
     private String fileCover;
     private String filePath;
     @TableField(fill = FieldFill.INSERT)
-
     private LocalDateTime createTime;
     @TableField(fill = FieldFill.INSERT_UPDATE)
-
     private LocalDateTime updateTime;
     private Short folderType;
     private Short fileCategory;
     private Short fileType;
     private Short status;
-
     private LocalDateTime recoveryTime;
     @TableLogic
     private Short delFlat;

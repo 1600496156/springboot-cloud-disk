@@ -24,8 +24,7 @@ public class LoadFileDataListDto {
     private Short delFlat;
     private String nickName;
     private String email;
-    private Integer qqOpenId;
-    private String qqAvatar;
+    private String avatar;
     private String password;
     private LocalDateTime joinTime;
     private LocalDateTime lastLoginTime;

@@ -1,0 +1,13 @@
+@startuml
+left to right direction
+
+actor 管理员 as Admin
+
+usecase "用户管理" as UC1
+usecase "文件管理" as UC2
+usecase "系统设置" as UC3
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+@enduml

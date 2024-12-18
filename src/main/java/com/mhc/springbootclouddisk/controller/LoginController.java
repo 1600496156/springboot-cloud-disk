@@ -9,7 +9,6 @@ import com.mhc.springbootclouddisk.service.EmailCodeService;
 import com.mhc.springbootclouddisk.service.UserInfoService;
 import com.wf.captcha.SpecCaptcha;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.Email;
@@ -81,7 +80,7 @@ public class LoginController {
             @RequestParam("email") @Email @NotBlank(message = "邮箱不能为空") @Length(max = 50) String email,
             @RequestParam("emailCode") String emailCode,
             @RequestParam("nickName") String nickName,
-            @RequestParam("password") @Length(min = 8, max = 18) String password,
+            @RequestParam("password") String password,
             @RequestParam("checkCode") String checkCode,
             HttpSession session) {
         try {
@@ -132,6 +131,16 @@ public class LoginController {
 
     @GetMapping("avatar")
     public CloudDiskResult avatar(@RequestParam("userId") String userId, HttpServletResponse response) {
+        response.setContentType("image/png");
+        response.setHeader("Pragma", "No-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+        String url = userInfoService.avatar(userId);
+        return CloudDiskResult.success(url);
+    }
+
+    @GetMapping("getAvatar/{userId}")
+    public CloudDiskResult getAvatar(@PathVariable("userId") String userId, HttpServletResponse response) {
         response.setContentType("image/png");
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "no-cache");

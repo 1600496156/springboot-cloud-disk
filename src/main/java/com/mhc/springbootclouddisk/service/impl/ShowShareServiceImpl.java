@@ -25,6 +25,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,9 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
     @Resource
     private FileInfoService fileInfoService;
 
+    @Resource
+    private RedisTemplate<Object, Object> redisTemplate;
+
     @Override
     public GetShareLoginInfoDto getShareLoginInfo(String shareId, String token, String sharingCode) {
         GetShareLoginInfoDto getShareLoginInfoDto = new GetShareLoginInfoDto();
@@ -75,8 +79,13 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
         try {
             claims = jwtUtils.getClaims(token);
         } catch (RuntimeException e) {
-            log.info("获取不到用户token，需要验证分享码({})", e.getMessage());
-            claims = jwtUtils.parseToken(sharingCode);
+            try {
+                log.info("获取不到用户token，开始验证分享码({})", e.getMessage());
+                claims = jwtUtils.parseToken(sharingCode);
+            } catch (Exception ex) {
+                log.info("获取不到用户分享码，开始跳转输入分享码页面({})", e.getMessage());
+                return null;
+            }
         }
         try {
             Claims sharingCodeClaims = jwtUtils.parseToken(sharingCode);
@@ -116,7 +125,7 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
         getShareLoginInfoDto.setCurrentUser(null);
         getShareLoginInfoDto.setFileId(fileInfo.getFileId());
         UserInfo userInfo = userInfoMapper.selectById(fileShare.getUserId());
-        getShareLoginInfoDto.setAvatar(userInfo.getQqAvatar());
+        getShareLoginInfoDto.setAvatar(userInfo.getAvatar());
         getShareLoginInfoDto.setNickName(userInfo.getNickName());
         getShareLoginInfoDto.setUserId(userInfo.getUserId());
         return getShareLoginInfoDto;
@@ -191,7 +200,7 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
         List<String> shareFileList = Arrays.asList(shareFileIds.split(","));
         Claims claims = jwtUtils.getClaims(token);
         String newUserId = claims.get("userId", String.class);
-        if (newUserId==null){
+        if (newUserId == null) {
             log.info("访客无法保存到我的云盘,请先进行登录后保存");
             throw new ServerException("访客无法保存到我的云盘,请先进行登录后保存");
         }
@@ -199,6 +208,15 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
         createUserDirectories(newUserId);
         Map<String, String> fileIdMap = new HashMap<>();
         updateAllFileUser(shareFileList, fileShare.getUserId(), newUserId, myFolderId, fileIdMap);
+        UserInfo userInfo = userInfoMapper.selectById(newUserId);
+        long useSpace = userInfo.getUseSpace() + Long.parseLong(Objects.requireNonNull(redisTemplate.opsForValue().get(Constants.REDIS_CHUNK_SAVE_SHARE_SIZES + newUserId)).toString());
+        if (useSpace > userInfo.getTotalSpace()) {
+            log.info("用户保存文件到我的云盘失败，云盘存储空间不足");
+            throw new ServerException("保存文件到我的云盘失败，你的云盘存储空间不足");
+        }
+        userInfo.setUseSpace(useSpace);
+        userInfoMapper.updateById(userInfo);
+        redisTemplate.delete(Constants.REDIS_CHUNK_SAVE_SHARE_SIZES + newUserId);
         log.info("执行saveShare成功");
     }
 
@@ -251,9 +269,15 @@ public class ShowShareServiceImpl extends ServiceImpl<FileShareMapper, FileShare
                         log.info("视频切片创建成功，路径：{}", getUserFileTargetCut(newUserId).getAbsolutePath());
                     }
                 }
+                Object chunkSizes = redisTemplate.opsForValue().get(Constants.REDIS_CHUNK_SAVE_SHARE_SIZES + newUserId);
+                if (chunkSizes == null) {
+                    redisTemplate.opsForValue().set(Constants.REDIS_CHUNK_SAVE_SHARE_SIZES + newUserId, fileInfo.getFileSize());
+                } else {
+                    redisTemplate.opsForValue().set(Constants.REDIS_CHUNK_SAVE_SHARE_SIZES + newUserId, Long.valueOf(Objects.requireNonNull(redisTemplate.opsForValue().get(Constants.REDIS_CHUNK_SAVE_SHARE_SIZES + newUserId)).toString() + fileInfo.getFileSize()));
+                }
             }
             fileInfoMapper.insert(fileInfo);
-            log.info("用户【{}】将文件【{}】保存到网盘成功！", newUserId, fileInfo.getFileId());
+            log.info("用户【{}】将文件【{}】保存到云盘成功！", newUserId, fileInfo.getFileId());
             // 如果是文件夹，递归处理其子文件
             if (fileInfo.getFolderType() == 1) {
                 List<FileInfo> folderFiles = getFolderFile(oldUserId, fileId);

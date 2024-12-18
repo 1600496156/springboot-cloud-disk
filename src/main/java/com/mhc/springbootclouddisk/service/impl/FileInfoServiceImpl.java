@@ -1,6 +1,5 @@
 package com.mhc.springbootclouddisk.service.impl;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;

@@ -1,0 +1,23 @@
+@startuml
+left to right direction
+
+actor 用户 as User
+
+usecase "用户注册" as UC1
+usecase "用户登录" as UC2
+usecase "文件上传" as UC3
+usecase "文件下载" as UC4
+usecase "文件管理" as UC5
+usecase "回收站管理" as UC6
+usecase "文件分享" as UC7
+usecase "个人信息" as UC8
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+@enduml
