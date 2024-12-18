@@ -25,7 +25,6 @@ public class UserInfoUserDetailsService implements UserDetailsService {
         if (userInfo == null) {
             throw new ServerException("登录失败，你的账号不存在或者账号被封禁");
         }
-        //TODO查询权限
         return userInfo;
     }
 }

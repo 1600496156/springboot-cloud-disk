@@ -1,0 +1,28 @@
+@startuml
+actor 管理员 as Admin
+participant 浏览器 as Browser
+participant controller as Controller
+participant service as Service
+participant 数据库 as DB
+
+group 文件清理
+  Admin -> Browser : 发起文件清理请求
+  Browser -> Controller : 提交清理请求
+  Controller -> Service : 调用方法扫描系统文件
+  Service -> Service : 识别并删除违规文件
+  Service -> DB : 更新文件记录
+  DB --> Service : 确认更新成功
+  Service --> Controller : 返回清理成功信息
+  Controller --> Browser : 提示操作完成
+end
+
+group 文件删除
+  Admin -> Browser : 发起文件删除请求
+  Browser -> Controller : 提交删除请求
+  Controller -> Service : 调用方法删除目标文件
+  Service -> DB : 删除文件记录
+  DB --> Service : 确认更新成功
+  Service --> Controller : 返回删除成功信息
+  Controller --> Browser : 提示操作完成
+end
+@enduml

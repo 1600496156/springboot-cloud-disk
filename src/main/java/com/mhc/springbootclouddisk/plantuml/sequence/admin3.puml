@@ -1,0 +1,15 @@
+@startuml
+actor 管理员 as Admin
+participant 浏览器 as Browser
+participant controller as Controller
+participant service as Service
+participant 数据库 as ConfigDB
+
+Admin -> Browser : 修改参数并提交请求
+Browser -> Controller : 提交参数调整请求
+Controller -> Service : 调用方法更新参数
+Service -> ConfigDB : 更新配置文件或数据库记录
+ConfigDB --> Service : 确认更新成功
+Service --> Controller : 返回处理成功信息
+Controller --> Browser : 提示操作完成
+@enduml

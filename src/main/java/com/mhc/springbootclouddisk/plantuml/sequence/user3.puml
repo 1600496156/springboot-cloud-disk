@@ -1,0 +1,37 @@
+@startuml
+actor 用户 as User
+participant 浏览器 as Browser
+participant controller as Controller
+participant service as Service
+participant 数据库 as DB
+
+group 获取分享文件列表
+  User -> Browser : 请求查看分享文件列表
+  Browser -> Controller : 发送获取文件列表请求
+  Controller -> Service : 查询用户分享的文件
+  Service -> DB : 获取分享文件记录
+  DB --> Service : 返回分享文件数据
+  Service --> Controller : 返回分享文件信息
+  Controller --> Browser : 返回分享文件列表
+end
+
+group 分享文件
+  User -> Browser : 选择文件并发起分享请求
+  Browser -> Controller : 提交分享数据
+  Controller -> Service : 生成唯一分享链接
+  Service -> DB : 存储分享链接和文件信息
+  DB --> Service : 确认存储成功
+  Service --> Controller : 返回分享链接
+  Controller --> Browser : 返回分享链接给用户
+end
+
+group 取消分享
+  User -> Browser : 发起取消分享请求
+  Browser -> Controller : 提交取消请求
+  Controller -> Service : 更新分享状态为取消
+  Service -> DB : 更新分享记录状态
+  DB --> Service : 确认更新
+  Service --> Controller : 返回取消成功
+  Controller --> Browser : 提示用户取消完成
+end
+@enduml

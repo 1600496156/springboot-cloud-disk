@@ -1,0 +1,49 @@
+@startuml
+actor 用户 as User
+participant 浏览器 as Browser
+participant controller as Controller
+participant service as Service
+participant 数据库 as DB
+
+User -> Browser : 发起操作请求
+Browser -> Controller : 提交邮箱和密码
+
+group 注册流程
+  Controller -> Service : 校验邮箱唯一性
+  Service -> DB : 查询邮箱
+  DB --> Service : 返回结果
+  alt 邮箱唯一
+    Service -> DB : 写入用户数据
+    DB --> Service : 确认写入
+    Service --> Controller : 返回注册成功
+    Controller --> Browser : 提示用户注册成功
+  else 邮箱已存在
+    Controller --> Browser : 提示邮箱已注册
+  end
+end
+
+group 登录流程
+  Controller -> Service : 验证邮箱和密码
+  Service -> DB : 查询用户信息
+  DB --> Service : 返回用户数据
+  alt 验证成功
+    Service -> Controller : 生成JWT令牌
+    Controller --> Browser : 登录成功（返回令牌）
+  else 验证失败
+    Controller --> Browser : 提示认证失败
+  end
+end
+
+group 忘记密码流程
+  Controller -> Service : 发送验证码
+  Service -> DB : 保存验证码
+  DB --> Service : 确认保存
+  User -> Browser : 输入验证码和新密码
+  Browser -> Controller : 提交重置请求
+  Controller -> Service : 验证验证码
+  Service -> DB : 更新密码
+  DB --> Service : 确认更新
+  Service --> Controller : 返回结果
+  Controller --> Browser : 提示用户操作成功
+end
+@enduml

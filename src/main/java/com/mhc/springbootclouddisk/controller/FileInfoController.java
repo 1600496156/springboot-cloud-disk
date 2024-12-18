@@ -30,7 +30,7 @@ public class FileInfoController {
                                         @RequestParam(defaultValue = "1") Long pageNo, @RequestParam(defaultValue = "15") Long pageSize,
                                         HttpServletResponse response, HttpSession session) {
         Page<FileInfo> loadDataListPage = fileInfoService.loadDataListPage(pageNo, pageSize);
-        LoadDataListVo loadDataListVo = fileInfoService.loadDataList(loadDataListDto, loadDataListPage, token,response,session);
+        LoadDataListVo loadDataListVo = fileInfoService.loadDataList(loadDataListDto, loadDataListPage, token, response, session);
         return CloudDiskResult.success(loadDataListVo);
     }
 
@@ -50,7 +50,7 @@ public class FileInfoController {
         fileInfoService.tsGetVideoInfo(null, fileId, response, token, null);
     }
 
-    @PostMapping("getFile/{fileId}")
+    @RequestMapping("getFile/{fileId}")
     public void getFile(@PathVariable String fileId, HttpServletResponse response, @CookieValue(name = "Authorization", required = false) String token) {
         fileInfoService.tsGetVideoInfo(null, fileId, response, token, null);
     }

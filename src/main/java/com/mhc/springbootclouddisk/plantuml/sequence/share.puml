@@ -1,0 +1,51 @@
+@startuml
+actor 外部访问者 as Visitor
+participant 浏览器 as Browser
+participant controller as Controller
+participant service as Service
+participant 数据库 as DB
+
+Visitor -> Browser : 访问分享链接
+Browser -> Controller : 提交分享码
+Controller -> Service : 校验分享码
+Service -> DB : 校验分享码合法性
+DB --> Service : 返回校验结果
+Service --> Controller : 返回校验结果
+alt 校验成功
+    Controller --> Browser : 返回文件列表/目录结构
+    Browser -> Visitor : 显示文件信息
+    group 文件操作
+      Visitor -> Browser : 选择下载文件
+      Browser -> Controller : 请求下载文件
+      Controller -> Service : 生成下载链接
+      Service --> Controller : 返回下载链接
+      Controller --> Browser : 返回下载链接
+      Browser -> Visitor : 开始文件下载
+
+      Visitor -> Browser : 请求保存文件到网盘
+      Browser -> Controller : 校验登录状态
+      Controller -> Service : 查询用户登录状态
+      Service --> Controller : 返回登录状态
+      alt 已登录
+        Controller -> Service : 保存文件到网盘
+        Service --> Controller : 返回保存结果
+        Controller --> Browser : 返回操作成功
+      else 未登录
+        Controller --> Browser : 跳转登录页面
+      end
+    end
+
+    group 分享者操作
+      Visitor -> Browser : 取消分享请求
+      Browser -> Controller : 请求取消分享
+      Controller -> Service : 删除分享记录
+      Service -> DB : 更新数据库
+      DB --> Service : 返回更新结果
+      Service --> Controller : 返回取消成功
+      Controller --> Browser : 提示取消分享成功
+    end
+else 校验失败
+    Controller --> Browser : 提示分享码错误
+    Browser -> Visitor : 显示错误提示
+end
+@enduml

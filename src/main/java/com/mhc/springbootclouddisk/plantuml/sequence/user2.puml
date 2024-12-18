@@ -1,0 +1,62 @@
+@startuml
+actor 用户 as User
+participant 浏览器 as Browser
+participant controller as Controller
+participant service as Service
+participant 数据库 as DB
+
+group 文件上传
+  User -> Browser : 选择文件
+  Browser -> Controller : 提交文件信息和分片
+  Controller -> Service : 判断是否支持秒传
+  Service -> DB : 查询文件哈希值
+  DB --> Service : 返回查询结果
+  alt 支持秒传
+    Service -> DB : 更新文件记录
+    DB --> Service : 确认更新
+    Service --> Controller : 返回上传完成
+    Controller --> Browser : 提示完成
+  else 不支持秒传
+    loop 分片上传
+      Browser -> Controller : 提交分片
+      Controller -> Service : 保存分片
+      Service -> DB : 记录分片进度
+    end
+    Controller -> Service : 合并分片
+    Service -> DB : 更新文件记录
+    DB --> Service : 确认更新
+    Service --> Controller : 返回上传完成
+    Controller --> Browser : 提示完成
+  end
+end
+
+group 文件下载
+  User -> Browser : 选择文件
+  Browser -> Controller : 请求下载
+  Controller -> Service : 生成下载链接
+  Service -> DB : 查询文件路径
+  DB --> Service : 返回文件路径
+  Service --> Controller : 返回文件数据
+  Controller --> Browser : 提示下载完成
+end
+
+group 文件删除/重命名/移动
+  User -> Browser : 提交操作请求
+  Browser -> Controller : 发送操作数据
+  Controller -> Service : 更新文件元信息
+  Service -> DB : 更新数据库记录
+  DB --> Service : 确认更新
+  Service --> Controller : 返回操作成功
+  Controller --> Browser : 提示操作完成
+end
+
+group 文件预览
+  User -> Browser : 选择文件
+  Browser -> Controller : 请求文件内容
+  Controller -> Service : 解析文件数据
+  Service -> DB : 查询文件内容
+  DB --> Service : 返回文件数据
+  Service --> Controller : 传递解析内容
+  Controller --> Browser : 显示文件内容
+end
+@enduml

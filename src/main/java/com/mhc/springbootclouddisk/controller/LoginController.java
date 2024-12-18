@@ -139,6 +139,16 @@ public class LoginController {
         return CloudDiskResult.success(url);
     }
 
+    @GetMapping("getAvatar/{userId}")
+    public CloudDiskResult getAvatar(@PathVariable("userId") String userId, HttpServletResponse response) {
+        response.setContentType("image/png");
+        response.setHeader("Pragma", "No-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+        String url = userInfoService.avatar(userId);
+        return CloudDiskResult.success(url);
+    }
+
     @PostMapping("getUseSpace")
     public CloudDiskResult getUseSpace(@CookieValue(name = "Authorization", required = false) String jwt,
                                        HttpServletResponse response, HttpSession session) {
