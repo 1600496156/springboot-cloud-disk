@@ -3,15 +3,15 @@
 
  Source Server         : tt
  Source Server Type    : MySQL
- Source Server Version : 80039 (8.0.39)
+ Source Server Version : 80040 (8.0.40)
  Source Host           : localhost:3306
  Source Schema         : springboot-cloud-disk
 
  Target Server Type    : MySQL
- Target Server Version : 80039 (8.0.39)
+ Target Server Version : 80040 (8.0.40)
  File Encoding         : 65001
 
- Date: 14/12/2024 04:02:08
+ Date: 18/12/2024 16:18:46
 */
 
 SET NAMES utf8mb4;
