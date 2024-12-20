@@ -1,5 +1,6 @@
 package com.mhc.springbootclouddisk.utils;
 
+import cn.hutool.core.io.FileUtil;
 import com.mhc.springbootclouddisk.common.constants.Constants;
 import com.mhc.springbootclouddisk.common.exception.ServerException;
 import com.mhc.springbootclouddisk.entity.domain.FileInfo;
@@ -16,6 +17,7 @@ import java.io.*;
 @Component
 @Slf4j
 public class FileUtils {
+
     @Resource
     private FileInfoMapper fileInfoMapper;
 
@@ -31,7 +33,7 @@ public class FileUtils {
         File userTempFile = new File(userTempFileDirs.getPath() + File.separator + uploadFileDto.getFileName() + "_");
         File userFile = new File(userTargetFileDir.getPath() + File.separator + uploadFileDto.getFileName());
         File userFileCoverDir = new File("file_target_cover" + File.separator + userId);
-        File userFileCover = new File(userFileCoverDir.getPath() + File.separator + "cover_" + uploadFileDto.getFileName().substring(0, uploadFileDto.getFileName().lastIndexOf(".")) + Constants.FILE_TYPE_PICTURE_JPG);
+        File userFileCover = new File(userFileCoverDir.getPath() + File.separator + "cover_" + FileUtil.mainName(uploadFileDto.getFileName()) + Constants.FILE_TYPE_PICTURE_JPG);
         File userFileCutDir = new File("file_target_cut" + File.separator + userId);
         File userFileCut = new File(userFileCutDir.getPath() + File.separator + uploadFileDto.getFileName().substring(0, uploadFileDto.getFileName().lastIndexOf(".")));
 
@@ -101,7 +103,7 @@ public class FileUtils {
     }
 
     public static void createCover(String inputFile, String targetFile) {
-        String cmd = "ffmpeg -i %s -y -vframes 1 -vf scale=1080:-1 %s";
+        String cmd = "ffmpeg -i \"%s\" -y -vframes 1 -vf scale=1080:-1 \"%s\"";
         WindowsUtils.CmdCommand(String.format(cmd, inputFile, targetFile));
         log.info("执行Windows-Cmd命令成功");
     }
@@ -117,7 +119,7 @@ public class FileUtils {
             while ((len = in.read(byteData)) != -1) {
                 out.write(byteData, 0, len);
             }
-            log.info("文件：{}，输出cover封面成功",file.getName());
+            log.info("文件：{}，输出cover封面成功", file.getName());
         } catch (Exception e) {
             log.error("读取文件异常", e);
         }
