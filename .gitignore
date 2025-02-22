@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+AccessKey.txt
+qodana.sarif.json
+qodana.yaml
