@@ -1,24 +1,27 @@
 @startuml
 start
-:外部访问者通过分享链接访问系统;
+:访问者通过分享链接访问系统;
 :输入分享码;
+
 if (分享码校验通过?) then (是)
-    :查看文件列表/目录结构;
-    if (下载文件?) then (是)
-      :生成并下载文件;
-    endif
+  :查看文件列表/目录结构;
+
+  if (下载文件?) then (是)
+    :生成并下载文件;
+  endif
   if (用户是分享者?) then (是)
     :取消分享;
-    end
-  else (否)
-      if (已登录?) then (是)
-        :保存文件到个人网盘;
-      else (否)
-        :跳转至登录页面;
-      endif
+  else
+    if (已登录?) then (是)
+      :保存文件到个人网盘;
+    else
+      :跳转至登录页面;
+    endif
   endif
+
 else (否)
   :提示分享码错误;
 endif
+
 stop
 @enduml

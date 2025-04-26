@@ -1,8 +1,8 @@
 @startuml
 actor 外部访问者 as Visitor
 participant 浏览器 as Browser
-participant controller as Controller
-participant service as Service
+participant 控制层 as Controller
+participant 业务层 as Service
 participant 数据库 as DB
 
 Visitor -> Browser : 访问分享链接
