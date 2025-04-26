@@ -1,0 +1,22 @@
+@startuml
+start
+:用户提交登录请求;
+:前端对密码进行MD5加密到后端;
+
+partition Spring Security处理 {
+  :创建UsernamePasswordAuthenticationToken;
+  :调用AuthenticationManager验证;
+  :加载UserDetailsService获取用户信息;
+  :BCrypt验证密码;
+}
+
+if (验证成功?) then (是)
+  :生成JWT令牌;
+  :返回令牌给用户浏览器;
+else (否)
+  :抛出AuthenticationException;
+  :返回认证错误;
+endif
+
+stop
+@enduml
