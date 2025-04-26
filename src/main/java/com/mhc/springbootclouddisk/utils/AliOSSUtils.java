@@ -42,7 +42,7 @@ public class AliOSSUtils {
         ) {
             log.info("正在为用户：{} 配置默认的头像", userId);
             File file = new File(filePath);
-            //得到扩展名.jpg
+            //得到了扩展名.jpg
             String extendName = file.getName().substring(file.getName().lastIndexOf("."));
             //避免文件被覆盖
             String fileName = directory + userId + extendName;
