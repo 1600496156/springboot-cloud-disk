@@ -35,7 +35,7 @@ public class AliOSSUtils {
     }
 
     public String defaultUpload(String userId) {
-        final String filePath = "default.jpg";
+        final String filePath = "src/main/resources/static/default.jpg";
         try (
                 //获取文件上传输入流
                 InputStream inputStream = new FileInputStream(filePath)
