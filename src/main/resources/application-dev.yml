@@ -5,12 +5,12 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://172.19.101.81:3306/springboot-cloud-disk?serverTimezone=GMT%2B8&userUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true
+    url: jdbc:mysql://8.138.253.80:3306/springboot-cloud-disk?serverTimezone=GMT%2B8&userUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true
     username: root
-    password: 123456
+    password: 5303153031Al.?
   data:
     redis:
-      host: 172.19.101.81
+      host: 127.0.0.1
       port: 6379
   mail:
     host: smtp.qq.com

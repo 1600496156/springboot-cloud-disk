@@ -35,7 +35,7 @@ public class AliOSSUtils {
     }
 
     public String defaultUpload(String userId) {
-        final String filePath = "src/main/resources/static/default.jpg";
+        final String filePath = "default";
         try (
                 //获取文件上传输入流
                 InputStream inputStream = new FileInputStream(filePath)
@@ -47,7 +47,11 @@ public class AliOSSUtils {
             //避免文件被覆盖
             String fileName = directory + userId + extendName;
             //上传文件到 OSS
-            return putObjectToOOS(fileName, inputStream);
+            String url = putObjectToOOS(fileName, inputStream);
+            if (url.isEmpty()) {
+                return "https://springboot-cloud-disk.oss-cn-shenzhen.aliyuncs.com/Avatar/default.jpg";
+            }
+            return url;
         } catch (ClientException | IOException e) {
             throw new RuntimeException("defaultUpload运行异常");
         }
