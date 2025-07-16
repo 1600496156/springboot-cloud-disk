@@ -114,7 +114,7 @@ public class LoginController {
     @PostMapping("resetPwd")
     public CloudDiskResult resetPwd(
             @RequestParam("email") @Email @NotBlank(message = "邮箱不能为空") @Length(max = 50) String email,
-            @RequestParam("password") @Length(min = 8, max = 18) String password,
+            @RequestParam("password")  String password,
             @RequestParam("checkCode") String checkCode,
             @RequestParam("emailCode") String emailCode,
             HttpSession session) {

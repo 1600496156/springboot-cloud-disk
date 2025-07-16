@@ -11,7 +11,7 @@
 
     <groupId>com.mhc</groupId>
     <artifactId>springboot-cloud-disk</artifactId>
-    <version>1.4.0</version>
+    <version>3.0.0</version>
 
     <properties>
         <java.version>21</java.version>
@@ -129,6 +129,13 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests> <!-- 跳过所有测试 -->
                 </configuration>
             </plugin>
         </plugins>

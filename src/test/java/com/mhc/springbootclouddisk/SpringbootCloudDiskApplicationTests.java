@@ -41,7 +41,7 @@ class SpringbootCloudDiskApplicationTests {
 
     @Test
     void contextLoads3() {
-        File file = new File("default.jpg");
+        File file = new File("src/main/resources/static/default.jpg");
         String extendName = file.getName().substring(file.getName().lastIndexOf("."));
         System.out.println(extendName);
     }
@@ -70,7 +70,7 @@ class SpringbootCloudDiskApplicationTests {
 
     @Test
     public void contextLoads8(){
-        File userTempFile = new File("C:\\Users\\Lenovo\\Desktop\\springboot-cloud-disk\\file\\805b51062805cb6cbb4f60298b8cc9df\\VID20170813203944.mp4_0");
+        File userTempFile = new File("C:\\Users\\Lenovo\\Desktop\\springboot-cloud-disk.sql");
         // 检查文件是否存在
         if (userTempFile.exists()) {
             long fileSize = userTempFile.length(); // 获取文件大小（以字节为单位）

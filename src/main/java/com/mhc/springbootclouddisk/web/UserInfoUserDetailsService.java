@@ -23,7 +23,7 @@ public class UserInfoUserDetailsService implements UserDetailsService {
         UserInfo userInfo = userInfoMapper.selectOne(user);
         log.info("UserInfoUserDetailsService根据用户名：{}，查询到用户:{}", username,userInfo);
         if (userInfo == null) {
-            throw new ServerException("登录失败，你的账号不存在或者账号被封禁");
+            throw new ServerException("登录失败，账号或者密码错误，若忘记密码请点击左下角进行重置密码");
         }
         return userInfo;
     }
