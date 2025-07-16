@@ -28,20 +28,20 @@ class SpringbootCloudDiskApplicationTests {
         redisTemplate.opsForValue().set("test", "test", Duration.ofMinutes(1));
     }
 
-//    @Test
-//    void contextLoads2() {
-//        UserInfo user = new UserInfo();
-//        user.setNickName("121");
-//        user.setEmail("email");
-//        user.setPassword("password");
-//        user.setUseSpace(0L);
-//        user.setTotalSpace(100L*1024L*1024L);
-//        userInfoMapper.insert(user);
-//    }
+    @Test
+    void contextLoads2() {
+        UserInfo user = new UserInfo();
+        user.setNickName("121");
+        user.setEmail("email");
+        user.setPassword("password");
+        user.setUseSpace(0L);
+        user.setTotalSpace(100L*1024L*1024L);
+        userInfoMapper.insert(user);
+    }
 
     @Test
     void contextLoads3() {
-        File file = new File("static/default.jpg");
+        File file = new File("src/main/resources/static/default.jpg");
         String extendName = file.getName().substring(file.getName().lastIndexOf("."));
         System.out.println(extendName);
     }

@@ -116,7 +116,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     public void resetPwd(String email, String password, String emailCode) {
         UserInfo selectUserByEmail = lambdaQuery().eq(UserInfo::getEmail, email).one();
         if (selectUserByEmail == null) {
-            throw new ServerException("你输入的邮箱地址错误，请重新输入");
+            throw new ServerException("你输入的邮箱地址不存在或该邮箱被封禁");
         }
         emailCodeService.checkEmailCode(email, emailCode);
         password = passwordEncoder.encode(password);
@@ -132,7 +132,13 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             return "https://springboot-cloud-disk.oss-cn-shenzhen.aliyuncs.com/Avatar/default.jpg";
         }
         if (user.getAvatar() == null) {
-            String url = aliOSSUtils.defaultUpload(userId);
+            String url;
+            try {
+                url = aliOSSUtils.defaultUpload(userId);
+            } catch (Exception e) {
+                url = "https://springboot-cloud-disk.oss-cn-shenzhen.aliyuncs.com/Avatar/default.jpg";
+                log.info("无法获取到默认头像default图片");
+            }
             user.setAvatar(url);
             lambdaUpdate().set(UserInfo::getAvatar, url).eq(UserInfo::getUserId, user.getUserId()).update();
         }
